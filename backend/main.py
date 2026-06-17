@@ -158,6 +158,16 @@ def parse_input_to_url(input_str: str) -> str:
             pass
         raise ValueError("invalid_url")
         
+    # Check for Twitter/X blockquote embed
+    blockquote_tw = soup.find("blockquote", class_="twitter-tweet")
+    if blockquote_tw:
+        a_tags = blockquote_tw.find_all("a", href=True)
+        if a_tags:
+            extracted_url = a_tags[-1]["href"].strip()
+            # Pass to direct URL logic
+            return parse_input_to_url(extracted_url)
+        raise ValueError("invalid_url")
+        
     # Look for data-instgrm-permalink
     blockquote = soup.find(attrs={"data-instgrm-permalink": True})
     if blockquote:
