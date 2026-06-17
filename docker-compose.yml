@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: instagram-downloader-backend
+    environment:
+      - FRONTEND_ORIGIN=http://localhost:3000
+    networks:
+      - downloader-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: instagram-downloader-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=http://backend:8000
+    networks:
+      - downloader-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  downloader-network:
+    driver: bridge
