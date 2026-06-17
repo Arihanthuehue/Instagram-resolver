@@ -349,13 +349,22 @@ export default function Home() {
                         <span>INDEX: 001/001</span>
                         <span className="uppercase">TYPE: {result.items[0].type}</span>
                       </div>
-                      <button
-                        id="download-item-0"
-                        onClick={() => downloadSingle(result.items[0])}
-                        className="brutalist-button py-2 text-xs font-bold tracking-wider w-full uppercase"
-                      >
-                        DOWNLOAD {result.items[0].type}
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          id="download-item-0"
+                          onClick={() => downloadSingle(result.items[0])}
+                          className="brutalist-button py-2 text-xs font-bold tracking-wider w-full uppercase flex-1"
+                        >
+                          DOWNLOAD {result.items[0].type}
+                        </button>
+                        <button
+                          id="copy-item-0"
+                          onClick={() => navigator.clipboard.writeText(result.items[0].preview_url)}
+                          className="brutalist-button py-2 text-xs font-bold tracking-wider w-full uppercase flex-1"
+                        >
+                          COPY LINK
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -403,13 +412,22 @@ export default function Home() {
                               <span>INDEX: {String(item.index + 1).padStart(3, "0")}</span>
                               <span className="uppercase">TYPE: {item.type}</span>
                             </div>
-                            <button
-                              id={`download-item-${item.index}`}
-                              onClick={() => downloadSingle(item)}
-                              className="brutalist-button py-2 text-xs font-bold tracking-wider w-full uppercase"
-                            >
-                              DOWNLOAD {item.type}
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                id={`download-item-${item.index}`}
+                                onClick={() => downloadSingle(item)}
+                                className="brutalist-button py-2 text-xs font-bold tracking-wider w-full uppercase flex-1"
+                              >
+                                DOWNLOAD {item.type}
+                              </button>
+                              <button
+                                id={`copy-item-${item.index}`}
+                                onClick={() => navigator.clipboard.writeText(item.preview_url)}
+                                className="brutalist-button py-2 text-xs font-bold tracking-wider w-full uppercase flex-1"
+                              >
+                                COPY LINK
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
