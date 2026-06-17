@@ -121,12 +121,41 @@ def parse_input_to_url(input_str: str) -> str:
         
     # Check if direct URL
     if input_str.startswith(("http://", "https://")):
+        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        try:
+            parsed = urlparse(input_str)
+            if parsed.netloc and "facebook.com" in parsed.netloc:
+                qs = parse_qs(parsed.query)
+                new_qs = {}
+                if 'v' in qs:
+                    new_qs['v'] = qs['v']
+                new_query = urlencode(new_qs, doseq=True)
+                clean_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+                return clean_url
+        except Exception:
+            pass
         return input_str.split("?")[0]
         
     # Parse as embed HTML
     try:
         soup = BeautifulSoup(input_str, "html.parser")
     except Exception:
+        raise ValueError("invalid_url")
+        
+    # Check for Facebook iframe embed
+    iframe = soup.find("iframe", src=True)
+    if iframe and "facebook.com" in iframe["src"]:
+        from urllib.parse import urlparse, parse_qs, unquote
+        try:
+            src_url = iframe["src"]
+            parsed_src = urlparse(src_url)
+            qs = parse_qs(parsed_src.query)
+            if "href" in qs:
+                extracted_url = unquote(qs["href"][0]).strip()
+                # Pass to direct URL logic
+                return parse_input_to_url(extracted_url)
+        except Exception:
+            pass
         raise ValueError("invalid_url")
         
     # Look for data-instgrm-permalink
@@ -144,6 +173,7 @@ def parse_input_to_url(input_str: str) -> str:
             return href.split("?")[0]
             
     raise ValueError("invalid_url")
+
 
 def extract_instagram_metadata(url: str) -> dict:
     ydl_opts = {
