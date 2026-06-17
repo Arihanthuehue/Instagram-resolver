@@ -368,7 +368,12 @@ async def extract_post(payload: ExtractRequest = Body(...)):
                 
                 if item_details["type"] == "video":
                     try:
-                        if needs_merge:
+                        is_twitter = "twitter.com" in resolved_url or "x.com" in resolved_url
+                        is_m3u8 = preview_url and "m3u8" in preview_url.lower()
+                        
+                        if is_twitter and is_m3u8:
+                            tmp_path = await asyncio.to_thread(_ffmpeg_merge_to_tempfile, preview_url, preview_url, USER_AGENT)
+                        elif needs_merge:
                             tmp_path = await asyncio.to_thread(_ffmpeg_merge_to_tempfile, video_url, audio_url, USER_AGENT)
                         else:
                             tmp_path = await asyncio.to_thread(_download_video_to_tempfile, preview_url, USER_AGENT)
@@ -408,7 +413,12 @@ async def extract_post(payload: ExtractRequest = Body(...)):
             
             if item_details["type"] == "video":
                 try:
-                    if needs_merge:
+                    is_twitter = "twitter.com" in resolved_url or "x.com" in resolved_url
+                    is_m3u8 = preview_url and "m3u8" in preview_url.lower()
+                    
+                    if is_twitter and is_m3u8:
+                        tmp_path = await asyncio.to_thread(_ffmpeg_merge_to_tempfile, preview_url, preview_url, USER_AGENT)
+                    elif needs_merge:
                         tmp_path = await asyncio.to_thread(_ffmpeg_merge_to_tempfile, video_url, audio_url, USER_AGENT)
                     else:
                         tmp_path = await asyncio.to_thread(_download_video_to_tempfile, preview_url, USER_AGENT)
