@@ -245,7 +245,7 @@ def extract_youtube_metadata(url: str) -> dict:
         'verbose': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'tv_embedded', 'ios'],
+                'player_client': ['android', 'ios', 'web_embedded', 'mweb'],
             }
         }
     }
@@ -259,12 +259,10 @@ def extract_youtube_metadata(url: str) -> dict:
         except yt_dlp.utils.DownloadError as e:
             msg = str(e).lower()
             logger.error(f"yt-dlp YouTube DownloadError: {msg}")
-            if "requested format is not available" in msg or "po token" in msg or "sabr" in msg:
+            if "sign in to confirm" in msg or "not a bot" in msg:
                 raise ValueError("youtube_blocked")
-            elif "private" in msg or "login" in msg or "empty media response" in msg or "log in" in msg or "sign in" in msg:
+            elif "private video" in msg or "members-only" in msg:
                 raise ValueError("private_post")
-            elif "unsupported url" in msg or "invalid" in msg:
-                raise ValueError("invalid_url")
             else:
                 raise ValueError("resolve_failed")
 
