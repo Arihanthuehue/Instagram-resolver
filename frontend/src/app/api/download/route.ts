@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
   }
 
-  const backendUrl = process.env.BACKEND_URL || 'http://backend:8000';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://backend:8000';
   const targetUrl = new URL(`${backendUrl}/download`);
   targetUrl.searchParams.set('url', urlParam);
   targetUrl.searchParams.set('type', typeParam);

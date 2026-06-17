@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const backendUrl = process.env.BACKEND_URL || 'http://backend:8000';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://backend:8000';
     
     const res = await fetch(`${backendUrl}/extract`, {
       method: 'POST',
