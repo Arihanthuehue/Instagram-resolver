@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import base64
 import subprocess
 import tempfile
 import logging
@@ -32,6 +33,20 @@ app.add_middleware(
 )
 # Config & Global State
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+YOUTUBE_COOKIES_PATH = None
+_cookies_b64 = os.getenv("YOUTUBE_COOKIES_B64")
+if _cookies_b64:
+    try:
+        _cookies_dir = os.path.dirname("/app/youtube_cookies.txt")
+        if _cookies_dir:
+            os.makedirs(_cookies_dir, exist_ok=True)
+        with open("/app/youtube_cookies.txt", "wb") as _f:
+            _f.write(base64.b64decode(_cookies_b64))
+        YOUTUBE_COOKIES_PATH = "/app/youtube_cookies.txt"
+        logger.info("Successfully decoded and wrote YouTube cookies to /app/youtube_cookies.txt")
+    except Exception as _e:
+        logger.error(f"Failed to write YouTube cookies: {_e}")
 
 def _get_running_port() -> int:
     try:
@@ -249,6 +264,8 @@ def extract_youtube_metadata(url: str) -> dict:
             }
         }
     }
+    if YOUTUBE_COOKIES_PATH is not None:
+        ydl_opts['cookiefile'] = YOUTUBE_COOKIES_PATH
     
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
