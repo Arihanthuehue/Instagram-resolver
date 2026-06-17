@@ -258,6 +258,7 @@ def extract_youtube_metadata(url: str) -> dict:
         'quiet': False,
         'no_warnings': False,
         'verbose': True,
+        'remote_components': {'ejs:github'},
     }
     if YOUTUBE_COOKIES_PATH is not None:
         ydl_opts['cookiefile'] = YOUTUBE_COOKIES_PATH
