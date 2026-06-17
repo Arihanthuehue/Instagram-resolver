@@ -124,6 +124,23 @@ def parse_input_to_url(input_str: str) -> str:
         from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
         try:
             parsed = urlparse(input_str)
+            netloc = parsed.netloc.lower()
+            if "youtube.com" in netloc or "youtu.be" in netloc:
+                if "youtube.com" in netloc:
+                    if parsed.path.startswith("/shorts/"):
+                        video_id = parsed.path.split("/")[2].split("?")[0]
+                        return f"https://www.youtube.com/watch?v={video_id}"
+                    elif parsed.path.startswith("/watch"):
+                        qs = parse_qs(parsed.query)
+                        if 'v' in qs:
+                            return f"https://www.youtube.com/watch?v={qs['v'][0]}"
+                    elif parsed.path.startswith("/embed/"):
+                        video_id = parsed.path.split("/")[2].split("?")[0]
+                        return f"https://www.youtube.com/watch?v={video_id}"
+                elif "youtu.be" in netloc:
+                    video_id = parsed.path.lstrip("/").split("?")[0].split("/")[0]
+                    return f"https://www.youtube.com/watch?v={video_id}"
+
             if parsed.netloc and "facebook.com" in parsed.netloc:
                 qs = parse_qs(parsed.query)
                 new_qs = {}
@@ -142,6 +159,16 @@ def parse_input_to_url(input_str: str) -> str:
     except Exception:
         raise ValueError("invalid_url")
         
+    # Check for YouTube iframe embed
+    iframe = soup.find("iframe", src=True)
+    if iframe and ("youtube.com" in iframe["src"] or "youtu.be" in iframe["src"]):
+        src_url = iframe["src"].strip()
+        if src_url.startswith("//"):
+            src_url = "https:" + src_url
+        elif not src_url.startswith(("http://", "https://")):
+            src_url = "https://" + src_url
+        return parse_input_to_url(src_url)
+
     # Check for Facebook iframe embed
     iframe = soup.find("iframe", src=True)
     if iframe and "facebook.com" in iframe["src"]:
@@ -208,6 +235,40 @@ def extract_instagram_metadata(url: str) -> dict:
                 raise ValueError("invalid_url")
             else:
                 raise ValueError("resolve_failed")
+
+
+def extract_youtube_metadata(url: str) -> dict:
+    ydl_opts = {
+        'skip_download': True,
+        'quiet': False,
+        'no_warnings': False,
+        'verbose': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'tv_embedded', 'ios'],
+            }
+        }
+    }
+    
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(url, download=False)
+            if not info:
+                raise ValueError("resolve_failed")
+            return info
+        except yt_dlp.utils.DownloadError as e:
+            msg = str(e).lower()
+            logger.error(f"yt-dlp YouTube DownloadError: {msg}")
+            if "requested format is not available" in msg or "po token" in msg or "sabr" in msg:
+                raise ValueError("youtube_blocked")
+            elif "private" in msg or "login" in msg or "empty media response" in msg or "log in" in msg or "sign in" in msg:
+                raise ValueError("private_post")
+            elif "unsupported url" in msg or "invalid" in msg:
+                raise ValueError("invalid_url")
+            else:
+                raise ValueError("resolve_failed")
+
+
 def process_yt_dlp_item(entry: dict) -> dict:
     formats = entry.get('formats', [])
     is_video = False
@@ -344,7 +405,11 @@ async def extract_post(payload: ExtractRequest = Body(...)):
         resolved_url = parse_input_to_url(input)
         logger.info(f"Resolved URL: {resolved_url}")
         
-        info = extract_instagram_metadata(resolved_url)
+        is_youtube = "youtube.com" in resolved_url or "youtu.be" in resolved_url
+        if is_youtube:
+            info = extract_youtube_metadata(resolved_url)
+        else:
+            info = extract_instagram_metadata(resolved_url)
         
         raw_entries = info.get('entries')
         entries = list(raw_entries) if raw_entries is not None else None
@@ -457,7 +522,7 @@ async def extract_post(payload: ExtractRequest = Body(...)):
         
     except ValueError as val_err:
         err_msg = str(val_err)
-        if err_msg not in ["private_post", "invalid_url", "resolve_failed"]:
+        if err_msg not in ["private_post", "invalid_url", "resolve_failed", "youtube_blocked"]:
             err_msg = "resolve_failed"
         logger.error(
             f"Extraction failed for input={input!r}: known error={err_msg}",
