@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  overflow-y: scroll;
+}
+
+/* Custom editorial-brutalist thin scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+  border-left: 1px solid #262626;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ffffff;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4d4d4;
+}
+
+/* Utility to ensure brutalist design handles transitions */
+.brutalist-border {
+  border: 2px solid #ffffff;
+}
+
+.brutalist-border-dim {
+  border: 2px solid #262626;
+}
+
+.brutalist-button {
+  background-color: #000000;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  font-family: ui-monospace, monospace;
+  transition: all 100ms ease-in-out;
+}
+
+.brutalist-button:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.brutalist-button:disabled {
+  border-color: #262626;
+  color: #262626;
+  background-color: #000000;
+  cursor: not-allowed;
+}
