@@ -1,0 +1,9 @@
+{
+  "name": "instagram-downloader-wrapper",
+  "version": "1.0.0",
+  "description": "Thin reverse proxy wrapper and process supervisor for Python FastAPI service",
+  "main": "wrapper.js",
+  "dependencies": {
+    "http-proxy": "^1.18.1"
+  }
+}
